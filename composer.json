@@ -1,0 +1,23 @@
+{
+    "name": "tobiassjosten/jsonapi-util",
+    "description": "",
+    "homepage": "https://github.com/ircmaxell/password_compat",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tobias Sjösten",
+            "email": "tobias@tobiassjosten.net",
+            "homepage": "http://vvv.tobiassjosten.net/"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^6.0"
+    },
+    "autoload": {
+        "files": ["src/jsonapi-util.php"]
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit --verbose"
+    }
+}
