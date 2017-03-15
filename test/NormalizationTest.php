@@ -13,6 +13,27 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider dataSimple
      */
+    public function testNormalizeLayeredIncludes($denormal, $normal)
+    {
+        $extra = [
+            'type' => 'extras',
+            'id' => uniqid(),
+            'attributes' => [
+                'asdf' => 'qwer',
+            ],
+        ];
+
+        foreach ($denormal['data']['relationships'] as &$relationship) {
+            $relationship['included'][] = $extra;
+        }
+        $normal['included'][] = $extra;
+
+        $this->assertEquals($normal, jsonapi_normalize($denormal));
+    }
+
+    /**
+     * @dataProvider dataSimple
+     */
     public function testDenormalize($denormal, $normal)
     {
         $this->assertEquals($denormal, jsonapi_denormalize($normal));
@@ -77,7 +98,7 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
             ],
 
 
-            // One level, duplicate company
+            // One level, duplicate relationships
 
             [
                 [

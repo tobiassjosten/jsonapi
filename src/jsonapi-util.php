@@ -33,7 +33,12 @@ namespace {
                         'id' => $datum['id'],
                     ];
                 }
+            }
 
+            // Move embedded includes to root level.
+            if ($recursion && isset($jsonApi['included'])) {
+                $included = array_merge($included, $jsonApi['included']);
+                unset($jsonApi['included']);
             }
 
             if (!$recursion) {
