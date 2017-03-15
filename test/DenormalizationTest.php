@@ -1,8 +1,8 @@
 <?php
 
-class NormalizationTest extends \PHPUnit\Framework\TestCase
+class DenormalizationTest extends \PHPUnit\Framework\TestCase
 {
-    public function testNormalizeSimple()
+    public function testDenormalizeSimple()
     {
         $employeeId = uniqid();
         $employeeName = uniqid();
@@ -10,28 +10,6 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         $companyName = uniqid();
 
         $this->assertEquals([
-            'data' => [
-                'type' => 'employees',
-                'id' => $employeeId,
-                'attributes' => [
-                    'name' => $employeeName,
-                ],
-                'relationships' => [
-                    'company' => [
-                        'data' => ['type' => 'companies', 'id' => $companyId],
-                    ],
-                ],
-            ],
-            'included' => [
-                [
-                    'type' => 'companies',
-                    'id' => $companyId,
-                    'attributes' => [
-                        'name' => $companyName,
-                    ],
-                ],
-            ],
-        ], jsonapi_normalize([
             'data' => [
                 'type' => 'employees',
                 'id' => $employeeId,
@@ -50,17 +28,7 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                     ],
                 ],
             ],
-        ]));
-    }
-
-    public function testNormalizeDuplicate()
-    {
-        $employeeId = uniqid();
-        $employeeName = uniqid();
-        $companyId = uniqid();
-        $companyName = uniqid();
-
-        $this->assertEquals([
+        ], jsonapi_denormalize([
             'data' => [
                 'type' => 'employees',
                 'id' => $employeeId,
@@ -69,9 +37,6 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                 ],
                 'relationships' => [
                     'company' => [
-                        'data' => ['type' => 'companies', 'id' => $companyId],
-                    ],
-                    'duplicateCompany' => [
                         'data' => ['type' => 'companies', 'id' => $companyId],
                     ],
                 ],
@@ -85,7 +50,17 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                     ],
                 ],
             ],
-        ], jsonapi_normalize([
+        ]));
+    }
+
+    public function testDenormalizeDuplicate()
+    {
+        $employeeId = uniqid();
+        $employeeName = uniqid();
+        $companyId = uniqid();
+        $companyName = uniqid();
+
+        $this->assertEquals([
             'data' => [
                 'type' => 'employees',
                 'id' => $employeeId,
@@ -113,10 +88,35 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                     ],
                 ],
             ],
+        ], jsonapi_denormalize([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId,
+                'attributes' => [
+                    'name' => $employeeName,
+                ],
+                'relationships' => [
+                    'company' => [
+                        'data' => ['type' => 'companies', 'id' => $companyId],
+                    ],
+                    'duplicateCompany' => [
+                        'data' => ['type' => 'companies', 'id' => $companyId],
+                    ],
+                ],
+            ],
+            'included' => [
+                [
+                    'type' => 'companies',
+                    'id' => $companyId,
+                    'attributes' => [
+                        'name' => $companyName,
+                    ],
+                ],
+            ],
         ]));
     }
 
-    public function testNormalizeDeep()
+    public function testDenormalizeDeep()
     {
         $employeeId = uniqid();
         $employeeName = uniqid();
@@ -126,6 +126,36 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         $groupName = uniqid();
 
         $this->assertEquals([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId,
+                'attributes' => [
+                    'name' => $employeeName,
+                ],
+                'relationships' => [
+                    'company' => [
+                        'data' => [
+                            'type' => 'companies',
+                            'id' => $companyId,
+                            'attributes' => [
+                                'name' => $companyName,
+                            ],
+                            'relationships' => [
+                                'group' => [
+                                    'data' => [
+                                        'type' => 'groups',
+                                        'id' => $groupId,
+                                        'attributes' => [
+                                            'name' => $groupName,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], jsonapi_denormalize([
             'data' => [
                 'type' => 'employees',
                 'id' => $employeeId,
@@ -155,36 +185,6 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                     'relationships' => [
                         'group' => [
                             'data' => ['type' => 'groups', 'id' => $groupId],
-                        ],
-                    ],
-                ],
-            ],
-        ], jsonapi_normalize([
-            'data' => [
-                'type' => 'employees',
-                'id' => $employeeId,
-                'attributes' => [
-                    'name' => $employeeName,
-                ],
-                'relationships' => [
-                    'company' => [
-                        'data' => [
-                            'type' => 'companies',
-                            'id' => $companyId,
-                            'attributes' => [
-                                'name' => $companyName,
-                            ],
-                            'relationships' => [
-                                'group' => [
-                                    'data' => [
-                                        'type' => 'groups',
-                                        'id' => $groupId,
-                                        'attributes' => [
-                                            'name' => $groupName,
-                                        ],
-                                    ],
-                                ],
-                            ],
                         ],
                     ],
                 ],
