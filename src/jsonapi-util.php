@@ -18,8 +18,27 @@ namespace {
                 $included = &$jsonApi['included'];
             }
 
-            $multiple = !isset($jsonApi['data']['type']) || !isset($jsonApi['data']['id']);
-            foreach ($multiple ? $jsonApi['data'] : [&$jsonApi['data']] as &$datum) {
+            if (isset($jsonApi['data']['type']) && isset($jsonApi['data']['id'])) {
+                $data = [&$jsonApi['data']];
+            } else {
+                $data = &$jsonApi['data'];
+            }
+
+            foreach ($data as $key => $datum) {
+                if (isset($datum['data'])) {
+                    $subData = isset($datum['data']['type']) && isset($datum['data']['id'])
+                        ? [$datum['data']] : $datum['data'];
+
+                    foreach ($subData as $subDatum) {
+                        $data[] = $subDatum;
+                    }
+
+                    unset($data[$key]);
+                }
+            }
+            $data = array_values($data);
+
+            foreach ($data as &$datum) {
                 if (isset($datum['relationships'])) {
                     foreach ($datum['relationships'] as &$relationship) {
                         $relationship = jsonapi_normalize($relationship, $included);
@@ -78,8 +97,13 @@ namespace {
                 $included = &$jsonApi['included'];
             }
 
-            $multiple = !isset($jsonApi['data']['type']) || !isset($jsonApi['data']['id']);
-            foreach ($multiple ? $jsonApi['data'] : [&$jsonApi['data']] as &$datum) {
+            if (isset($jsonApi['data']['type']) && isset($jsonApi['data']['id'])) {
+                $data = [&$jsonApi['data']];
+            } else {
+                $data = &$jsonApi['data'];
+            }
+
+            foreach ($data as &$datum) {
                 foreach ($included as $include) {
                     if (($datum['type'] === $include['type']) && ($datum['id'] === $include['id'])) {
                         $datum = $include;
