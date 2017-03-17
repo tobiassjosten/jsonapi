@@ -53,6 +53,30 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         ]));
     }
 
+    public function testNormalizeNoIncludes()
+    {
+        $employeeId = uniqid();
+        $employeeName = uniqid();
+
+        $this->assertEquals([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId,
+                'attributes' => [
+                    'name' => $employeeName,
+                ],
+            ],
+        ], jsonapi_normalize([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId,
+                'attributes' => [
+                    'name' => $employeeName,
+                ],
+            ],
+        ]));
+    }
+
     public function testNormalizeDuplicate()
     {
         $employeeId = uniqid();

@@ -17,6 +17,10 @@ class Normalizer
         $jsonApi['included'] = @$jsonApi['included'] ?: [];
         $jsonApi['data'] = self::unwrapData($jsonApi, $jsonApi['included'], false);
 
+        if (empty($jsonApi['included'])) {
+            unset($jsonApi['included']);
+        }
+
         return $jsonApi;
     }
 
