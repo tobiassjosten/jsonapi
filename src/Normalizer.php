@@ -14,7 +14,11 @@ class Normalizer
      */
     public static function normalize($jsonApi)
     {
-        $jsonApi['included'] = @$jsonApi['included'] ?: [];
+        $jsonApi = [
+            'data' => isset($jsonApi['data']) ? $jsonApi['data'] : $jsonApi,
+            'included' => @$jsonApi['included'] ?: [],
+        ];
+
         $jsonApi['data'] = self::unwrapData($jsonApi, $jsonApi['included'], false);
 
         if (empty($jsonApi['included'])) {
@@ -37,7 +41,8 @@ class Normalizer
         // property. Its 'data' property, however, is mutated only in its
         // return value and thus the copying ternary below is important.
 
-        $data = isset($jsonApi['data']['data']) ? $jsonApi['data']['data'] : $jsonApi['data'];
+        $data = !isset($jsonApi['data']) ? $jsonApi
+            : (!isset($jsonApi['data']['data']) ? $jsonApi['data'] : $jsonApi['data']['data']);
 
         if (!isset($data['type']) && !isset($data['id'])) {
             return array_map(function ($datum) use (&$included, $child) {
@@ -56,7 +61,7 @@ class Normalizer
 
         if (isset($data['relationships'])) {
             foreach ($data['relationships'] as &$relationship) {
-                $relationship['data'] = self::unwrapData($relationship, $included, true);
+                $relationship = ['data' => self::unwrapData($relationship, $included, true)];
             }
         }
 
