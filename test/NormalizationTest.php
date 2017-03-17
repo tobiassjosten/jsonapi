@@ -260,10 +260,12 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                         'relationships' => [
                             'company' => [
                                 'data' => [
-                                    'type' => 'companies',
-                                    'id' => $companyId,
-                                    'attributes' => [
-                                        'name' => $companyName,
+                                    'data' => [
+                                        'type' => 'companies',
+                                        'id' => $companyId,
+                                        'attributes' => [
+                                            'name' => $companyName,
+                                        ],
                                     ],
                                 ],
                             ],
@@ -280,10 +282,12 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                         'relationships' => [
                             'company' => [
                                 'data' => [
-                                    'type' => 'companies',
-                                    'id' => $companyId,
-                                    'attributes' => [
-                                        'name' => $companyName,
+                                    'data' => [
+                                        'type' => 'companies',
+                                        'id' => $companyId,
+                                        'attributes' => [
+                                            'name' => $companyName,
+                                        ],
                                     ],
                                 ],
                             ],
@@ -394,6 +398,13 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
             ],
             'included' => [
                 [
+                    'type' => 'groups',
+                    'id' => $groupId,
+                    'attributes' => [
+                        'name' => $groupName,
+                    ],
+                ],
+                [
                     'type' => 'companies',
                     'id' => $companyId,
                     'attributes' => [
@@ -403,13 +414,6 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                         'group' => [
                             'data' => ['type' => 'groups', 'id' => $groupId],
                         ],
-                    ],
-                ],
-                [
-                    'type' => 'groups',
-                    'id' => $groupId,
-                    'attributes' => [
-                        'name' => $groupName,
                     ],
                 ],
             ],
@@ -470,6 +474,13 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
             ],
             'included' => [
                 [
+                    'type' => 'groups',
+                    'id' => $groupId,
+                    'attributes' => [
+                        'name' => $groupName,
+                    ],
+                ],
+                [
                     'type' => 'companies',
                     'id' => $companyId,
                     'attributes' => [
@@ -479,13 +490,6 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
                         'group' => [
                             'data' => ['type' => 'groups', 'id' => $groupId],
                         ],
-                    ],
-                ],
-                [
-                    'type' => 'groups',
-                    'id' => $groupId,
-                    'attributes' => [
-                        'name' => $groupName,
                     ],
                 ],
             ],

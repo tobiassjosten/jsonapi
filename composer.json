@@ -1,5 +1,5 @@
 {
-    "name": "tobiassjosten/jsonapi-util",
+    "name": "tobiassjosten/jsonapi",
     "description": "",
     "homepage": "https://github.com/ircmaxell/password_compat",
     "license": "MIT",
@@ -15,7 +15,8 @@
         "phpunit/phpunit": "^6.0"
     },
     "autoload": {
-        "files": ["src/jsonapi-util.php"]
+        "psr-4": { "Tobiassjosten\\JsonApi\\": "src" },
+        "files": ["src/jsonapi.php"]
     },
     "scripts": {
         "test": "vendor/bin/phpunit --verbose"

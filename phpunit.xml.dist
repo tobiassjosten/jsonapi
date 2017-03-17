@@ -13,8 +13,11 @@
          strict="true"
          verbose="true"
 >
+    <php>
+        <ini name='xdebug.var_display_max_depth' value='100' />
+    </php>
     <testsuites>
-        <testsuite name="JSON API Util Test Suite">
+        <testsuite name="JSON API Test Suite">
             <directory suffix="Test.php">test</directory>
         </testsuite>
     </testsuites>
