@@ -14,6 +14,10 @@ class Normalizer
      */
     public static function normalize($jsonApi)
     {
+        if (isset($jsonApi['errors'])) {
+            return $jsonApi;
+        }
+
         $jsonApi = [
             'data' => isset($jsonApi['data']) ? $jsonApi['data'] : $jsonApi,
             'included' => @$jsonApi['included'] ?: [],

@@ -605,4 +605,17 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
             ],
         ]));
     }
+
+    public function testIgnoreErrors()
+    {
+        $this->assertEquals([
+            'errors' => [
+                'id' => $id = uniqid(),
+            ],
+        ], jsonapi_normalize([
+            'errors' => [
+                'id' => $id,
+            ],
+        ]));
+    }
 }
