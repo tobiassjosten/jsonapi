@@ -64,9 +64,18 @@ class Normalizer
         }
 
         if (isset($data['relationships'])) {
-            foreach ($data['relationships'] as &$relationship) {
+            foreach ($data['relationships'] as $key => &$relationship) {
+                if (!$relationship || !is_array($relationship)) {
+                    unset($data['relationships'][$key]);
+                    continue;
+                }
+
                 $relationship = ['data' => self::unwrapData($relationship, $included, true)];
             }
+        }
+
+        if (empty($data['relationships'])) {
+            unset($data['relationships']);
         }
 
         if ($child) {
