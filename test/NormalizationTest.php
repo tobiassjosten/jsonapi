@@ -53,6 +53,18 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         ]));
     }
 
+    public function testNormalizeNull()
+    {
+        $this->assertEquals(['data' => null], jsonapi_normalize(null));
+        $this->assertEquals(['data' => true], jsonapi_normalize(true));
+        $this->assertEquals(['data' => false], jsonapi_normalize(false));
+        $this->assertEquals(['data' => []], jsonapi_normalize([]));
+        $this->assertEquals(['data' => null], jsonapi_normalize(['data' => null]));
+        $this->assertEquals(['data' => true], jsonapi_normalize(['data' => true]));
+        $this->assertEquals(['data' => false], jsonapi_normalize(['data' => false]));
+        $this->assertEquals(['data' => []], jsonapi_normalize(['data' => []]));
+    }
+
     public function testNormalizeInvalidRelationship()
     {
         $employeeId = uniqid();

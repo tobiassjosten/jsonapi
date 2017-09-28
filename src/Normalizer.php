@@ -19,7 +19,7 @@ class Normalizer
         }
 
         $jsonApi = [
-            'data' => isset($jsonApi['data']) ? $jsonApi['data'] : $jsonApi,
+            'data' => is_array($jsonApi) && array_key_exists('data', $jsonApi) ? $jsonApi['data'] : $jsonApi,
             'included' => @$jsonApi['included'] ?: [],
         ];
 
@@ -45,8 +45,16 @@ class Normalizer
         // property. Its 'data' property, however, is mutated only in its
         // return value and thus the copying ternary below is important.
 
-        $data = !isset($jsonApi['data']) ? $jsonApi
-            : (!isset($jsonApi['data']['data']) ? $jsonApi['data'] : $jsonApi['data']['data']);
+        $data = !is_array($jsonApi) || !array_key_exists('data', $jsonApi)
+            ? $jsonApi
+            : (!is_array($jsonApi['data']) || !array_key_exists('data', $jsonApi['data'])
+                ? $jsonApi['data']
+                : $jsonApi['data']['data']
+            );
+
+        if (!is_array($data) || !$data) {
+            return $data;
+        }
 
         if (!isset($data['type']) && !isset($data['id'])) {
             return array_map(function ($datum) use (&$included, $child) {
