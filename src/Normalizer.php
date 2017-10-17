@@ -78,6 +78,10 @@ class Normalizer
                     continue;
                 }
 
+                if (isset($relationship['links']) || isset($relationship['meta'])) {
+                    continue;
+                }
+
                 $relationship = ['data' => self::unwrapData($relationship, $included, true)];
             }
         }
@@ -95,6 +99,10 @@ class Normalizer
 
     private static function include(&$data, &$included)
     {
+        if (!isset($data['type']) || !isset($data['id'])) {
+            return;
+        }
+
         // Run through $included to ensure we don't duplicate $data in there.
         if (!array_reduce($included, function ($carry, $include) use ($data) {
             return $carry || ($include['type'] === $data['type'] && $include['id'] === $data['id']);

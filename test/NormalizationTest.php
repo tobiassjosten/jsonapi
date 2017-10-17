@@ -92,6 +92,31 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         ]));
     }
 
+    public function testNormalizeLinksRelationship()
+    {
+        $this->assertEquals([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId = uniqid(),
+                'relationships' => [
+                    'company' => [
+                        'links' => ['related' => $linkRelated = uniqid()],
+                    ],
+                ],
+            ],
+        ], jsonapi_normalize([
+            'data' => [
+                'type' => 'employees',
+                'id' => $employeeId,
+                'relationships' => [
+                    'company' => [
+                        'links' => ['related' => $linkRelated],
+                    ],
+                ],
+            ],
+        ]));
+    }
+
     public function testNormalizeNoIncludes()
     {
         $employeeId = uniqid();
