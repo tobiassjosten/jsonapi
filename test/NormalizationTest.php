@@ -65,6 +65,119 @@ class NormalizationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(['data' => []], jsonapi_normalize(['data' => []]));
     }
 
+    public function testNormalizeList()
+    {
+        $employeeId = uniqid();
+        $employeeName = uniqid();
+        $companyId = uniqid();
+        $companyName = uniqid();
+
+        $this->assertEquals([
+            'data' => [
+                [
+                    'type' => 'employees',
+                    'id' => $employeeId,
+                    'attributes' => [
+                        'name' => $employeeName,
+                    ],
+                    'relationships' => [
+                        'company' => [
+                            'data' => ['type' => 'companies', 'id' => $companyId],
+                        ],
+                    ],
+                ],
+            ],
+            'included' => [
+                [
+                    'type' => 'companies',
+                    'id' => $companyId,
+                    'attributes' => [
+                        'name' => $companyName,
+                    ],
+                ],
+            ],
+        ], jsonapi_normalize([
+            [
+                'data' => [
+                    'type' => 'employees',
+                    'id' => $employeeId,
+                    'attributes' => [
+                        'name' => $employeeName,
+                    ],
+                    'relationships' => [
+                        'company' => [
+                            'data' => [
+                                'type' => 'companies',
+                                'id' => $companyId,
+                                'attributes' => [
+                                    'name' => $companyName,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+    }
+
+    public function testNormalizeListWithIncluded()
+    {
+        $employeeId = uniqid();
+        $employeeName = uniqid();
+        $companyId = uniqid();
+        $companyName = uniqid();
+
+        $this->assertEquals([
+            'data' => [
+                [
+                    'type' => 'employees',
+                    'id' => $employeeId,
+                    'attributes' => [
+                        'name' => $employeeName,
+                    ],
+                    'relationships' => [
+                        'company' => [
+                            'data' => ['type' => 'companies', 'id' => $companyId],
+                        ],
+                    ],
+                ],
+            ],
+            'included' => [
+                [
+                    'type' => 'companies',
+                    'id' => $companyId,
+                    'attributes' => [
+                        'name' => $companyName,
+                    ],
+                ],
+            ],
+        ], jsonapi_normalize([
+            [
+                'data' => [
+                    'type' => 'employees',
+                    'id' => $employeeId,
+                    'attributes' => [
+                        'name' => $employeeName,
+                    ],
+                    'relationships' => [
+                        'company' => [
+                            'data' => ['type' => 'companies', 'id' => $companyId],
+                        ],
+                    ],
+                ],
+                'included' => [
+                    [
+                        'type' => 'companies',
+                        'id' => $companyId,
+                        'attributes' => [
+                            'name' => $companyName,
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+    }
+
     public function testNormalizeInvalidRelationship()
     {
         $employeeId = uniqid();

@@ -18,98 +18,151 @@ class Normalizer
             return $jsonApi;
         }
 
-        $jsonApi = [
-            'data' => is_array($jsonApi) && array_key_exists('data', $jsonApi) ? $jsonApi['data'] : $jsonApi,
-            'included' => @$jsonApi['included'] ?: [],
-        ];
+        $included = self::extractIncluded($jsonApi);
+        $data = self::formatData($jsonApi);
 
-        $jsonApi['data'] = self::unwrapData($jsonApi, $jsonApi['included'], false);
-
-        if (empty($jsonApi['included'])) {
-            unset($jsonApi['included']);
-        }
-
-        return $jsonApi;
+        return ['data' => $data] + ($included ? ['included' => $included] : []);
     }
 
-    private static function unwrapData(&$jsonApi, &$included, $child)
+    /**
+     * Iterate given array to extract related and included entities.
+     */
+    private static function extractIncluded(&$jsonApi)
     {
-        if (isset($jsonApi['included']) && $child) {
-            foreach ($jsonApi['included'] as $include) {
-                self::include($include, $included);
+        if (!$jsonApi || !is_array($jsonApi)) {
+            return [];
+        }
+
+        $included = array_merge(
+            self::extractNestedIncluded($jsonApi),
+            self::extractRelatedIncluded($jsonApi)
+        );
+
+        $unique = $exists = [];
+        foreach ($included as $include) {
+            if (empty($exists[$include['type']][$include['id']])) {
+                $unique[] = $include;
+                $exists[$include['type']][$include['id']] = true;
             }
+        }
+
+        return $unique;
+    }
+
+    /**
+     * Find and extract all 'included' list of entities.
+     */
+    private static function extractNestedIncluded(&$jsonApi)
+    {
+        if ($included = $jsonApi['included'] ?? []) {
             unset($jsonApi['included']);
         }
 
-        // $jsonApi must be a reference so that we can remove the 'included'
-        // property. Its 'data' property, however, is mutated only in its
-        // return value and thus the copying ternary below is important.
+        foreach ($jsonApi as &$value) {
+            if (is_array($value)) {
+                $included = array_merge($included, self::extractNestedIncluded($value));
+            }
+        }
 
-        $data = !is_array($jsonApi) || !array_key_exists('data', $jsonApi)
-            ? $jsonApi
-            : (!is_array($jsonApi['data']) || !array_key_exists('data', $jsonApi['data'])
-                ? $jsonApi['data']
-                : $jsonApi['data']['data']
-            );
+        return $included;
+    }
 
+    /**
+     * Find and extract all 'relationships' entities.
+     */
+    private static function extractRelatedIncluded(&$jsonApi)
+    {
+        $included = [];
+
+        if (!empty($jsonApi['relationships'])) {
+            foreach ($jsonApi['relationships'] as &$relationship) {
+                self::mapData($relationship, function (&$relationship) use (&$included) {
+                    $included = array_merge($included, self::extractRelatedIncluded($relationship), [$relationship]);
+                    $relationship = [
+                        'type' => $relationship['type'],
+                        'id' => $relationship['id'],
+                    ];
+                });
+            }
+        }
+
+        foreach ($jsonApi as $key => &$value) {
+            if ('relationship' !== $key && is_array($value)) {
+                $included = array_merge($included, self::extractRelatedIncluded($value));
+            }
+        }
+
+        return $included;
+    }
+
+    /**
+     * Apply given function on all entities in given data structure.
+     */
+    private static function mapData(&$data, $function)
+    {
+        // Data can be null, an empty array, or any other non-standard value.
+        if (!is_array($data) || !$data) {
+            return;
+        }
+
+        // Data can already be structured-ish, in which case we unwrap it.
+        if (array_key_exists('data', $data)) {
+            return self::mapData($data['data'], $function);
+        }
+
+        // Data can be an array of entities.
+        if (!isset($data['type']) && !isset($data['id'])) {
+            return array_map(function (&$data) use ($function) {
+                self::mapData($data, $function);
+            }, $data);
+        }
+
+        if (isset($data['type']) && isset($data['id'])) {
+            $function($data);
+        }
+    }
+
+    /**
+     * Format proper data structure.
+     */
+    private static function formatData($data)
+    {
+        // Data can be null, an empty array, or any other non-standard value.
         if (!is_array($data) || !$data) {
             return $data;
         }
 
-        if (!isset($data['type']) && !isset($data['id'])) {
-            return array_map(function ($datum) use (&$included, $child) {
-                return self::handleData($datum, $included, $child);
-            }, $data);
+        // Data can already be structured-ish, in which case we unwrap it.
+        if (array_key_exists('data', $data)) {
+            return self::formatData($data['data']);
         }
 
-        return self::handleData($data, $included, $child);
-    }
-
-    private static function handleData($data, &$included, $child)
-    {
-        if (isset($data['data'])) {
-            return self::unwrapData($data, $included, $child);
+        // Data can be an array of entities.
+        if (!isset($data['type']) && !isset($data['id'])) {
+            return array_filter(array_map(function ($data) {
+                return self::formatData($data);
+            }, $data));
         }
 
         if (isset($data['relationships'])) {
-            foreach ($data['relationships'] as $key => &$relationship) {
-                if (!$relationship || !is_array($relationship)) {
-                    unset($data['relationships'][$key]);
-                    continue;
-                }
-
+            foreach ($data['relationships'] as $name => &$relationship) {
                 if (isset($relationship['links']) || isset($relationship['meta'])) {
                     continue;
                 }
 
-                $relationship = ['data' => self::unwrapData($relationship, $included, true)];
+                $relationship = ['data' => self::formatData($relationship)];
+
+                if (!$relationship['data'] || !is_array($relationship['data'])) {
+                    unset($data['relationships'][$name]);
+                    continue;
+                }
+            }
+
+            if (empty($data['relationships'])) {
+                unset($data['relationships']);
             }
         }
 
-        if (empty($data['relationships'])) {
-            unset($data['relationships']);
-        }
-
-        if ($child) {
-            self::include($data, $included);
-        }
-
         return $data;
-    }
-
-    private static function include(&$data, &$included)
-    {
-        if (!isset($data['type']) || !isset($data['id'])) {
-            return;
-        }
-
-        // Run through $included to ensure we don't duplicate $data in there.
-        if (!array_reduce($included, function ($carry, $include) use ($data) {
-            return $carry || ($include['type'] === $data['type'] && $include['id'] === $data['id']);
-        })) {
-            $included[] = $data;
-        }
-
-        $data = ['type' => $data['type'], 'id' => $data['id']];
     }
 }
